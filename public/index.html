@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Traductor IA</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: #94a3b8;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 720px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+      border: 1px solid #334155;
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      align-items: flex-end;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    textarea, select {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      transition: border-color 0.2s;
+      outline: none;
+      width: 100%;
+    }
+
+    textarea { resize: vertical; min-height: 130px; line-height: 1.6; }
+    textarea:focus, select:focus { border-color: #6366f1; }
+
+    select { cursor: pointer; height: 46px; }
+
+    button {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 28px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    button:hover { opacity: 0.9; transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 16px;
+      color: #475569;
+      font-size: 0.8rem;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #334155;
+    }
+
+    .result-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 16px;
+      min-height: 100px;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      position: relative;
+    }
+
+    .result-box.empty { color: #475569; font-style: italic; }
+
+    .spinner {
+      display: none;
+      width: 20px; height: 20px;
+      border: 2px solid #334155;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: #334155;
+      border: none;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: none;
+    }
+    .copy-btn:hover { background: #475569; color: white; transform: none; }
+
+    .error { color: #f87171; font-size: 0.85rem; margin-top: 8px; display: none; }
+
+    .badge {
+      display: inline-block;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌐 Traductor IA</h1>
+  <p class="subtitle">Powered by LangChain + OpenAI</p>
+
+  <div class="card">
+    <div class="field" style="margin-bottom:16px">
+      <label>Texto original</label>
+      <textarea id="texto" placeholder="Escribe o pega el texto que quieres traducir..."></textarea>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label>Idioma destino</label>
+        <select id="idioma">
+          <option value="español">🇪🇸 Español</option>
+          <option value="inglés">🇺🇸 Inglés</option>
+          <option value="francés">🇫🇷 Francés</option>
+          <option value="alemán">🇩🇪 Alemán</option>
+          <option value="portugués">🇧🇷 Portugués</option>
+          <option value="italiano">🇮🇹 Italiano</option>
+          <option value="japonés">🇯🇵 Japonés</option>
+          <option value="chino">🇨🇳 Chino</option>
+        </select>
+      </div>
+      <button id="btn" onclick="traducir()">Traducir</button>
+    </div>
+
+    <div class="divider">traducción</div>
+
+    <div style="position:relative">
+      <div class="result-box empty" id="resultado">La traducción aparecerá aquí...</div>
+      <button class="copy-btn" id="copyBtn" onclick="copiar()">Copiar</button>
+    </div>
+
+    <div class="spinner" id="spinner"></div>
+    <div class="error" id="error"></div>
+  </div>
+
+  <span class="badge">GenAI Lab — LangChain + OpenAI</span>
+
+  <script>
+    async function traducir() {
+      const texto = document.getElementById('texto').value.trim();
+      const idioma = document.getElementById('idioma').value;
+      const btn = document.getElementById('btn');
+      const spinner = document.getElementById('spinner');
+      const resultado = document.getElementById('resultado');
+      const error = document.getElementById('error');
+      const copyBtn = document.getElementById('copyBtn');
+
+      if (!texto) { showError('Por favor escribe un texto para traducir.'); return; }
+
+      btn.disabled = true;
+      spinner.style.display = 'block';
+      resultado.textContent = '';
+      resultado.classList.add('empty');
+      error.style.display = 'none';
+      copyBtn.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/traducir', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texto, idioma })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Error del servidor');
+
+        resultado.textContent = data.traduccion;
+        resultado.classList.remove('empty');
+        copyBtn.style.display = 'block';
+      } catch (e) {
+        showError('Error: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+      }
+    }
+
+    function showError(msg) {
+      const error = document.getElementById('error');
+      error.textContent = msg;
+      error.style.display = 'block';
+    }
+
+    function copiar() {
+      const texto = document.getElementById('resultado').textContent;
+      navigator.clipboard.writeText(texto);
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = '✓ Copiado';
+      setTimeout(() => btn.textContent = 'Copiar', 2000);
+    }
+
+    document.getElementById('texto').addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 'Enter') traducir();
+    });
+  </script>
+</body>
+</html>
